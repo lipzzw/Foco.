@@ -311,27 +311,17 @@
   }
   .music-panel.open{ display:block; }
 
-  .music-select{
-    width:100%;
-    padding:10px 12px;
-    border:1px solid var(--line);
-    border-radius:var(--radius);
-    background:var(--white);
-    font-family:'Space Grotesk', sans-serif;
-    font-size:13px;
-    color:var(--ink);
-    margin-bottom:12px;
-  }
   .music-frame-wrap{
     position:relative;
     width:100%;
-    padding-top:56.25%;
-    background:var(--ink);
-    border-radius:var(--radius);
+    border-radius:12px;
     overflow:hidden;
   }
   .music-frame-wrap iframe{
-    position:absolute; top:0; left:0; width:100%; height:100%; border:none;
+    width:100%;
+    height:352px;
+    border:none;
+    display:block;
   }
   .music-hint{
     font-family:'IBM Plex Mono', monospace;
@@ -528,14 +518,18 @@
           <span class="chev">▾</span>
         </button>
         <div class="music-panel" id="musicPanel">
-          <select class="music-select" id="musicSelect">
-            <option value="X4VbdwhkE10">lofi hip hop radio 📚 — beats to relax/study to</option>
-            <option value="b4g8Uz7KP1A">Lo-Fi Girl LIVE 🌙 — cozy beats</option>
-          </select>
           <div class="music-frame-wrap">
-            <iframe id="musicFrame" src="" title="Rádio lofi" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+            <iframe id="musicFrame"
+              src=""
+              data-src="https://open.spotify.com/embed/playlist/4o4adZns2v64XskxV83rpp?utm_source=generator&si=167f11f3af604bea"
+              title="Playlist Spotify"
+              frameborder="0"
+              allowfullscreen
+              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+              loading="lazy">
+            </iframe>
           </div>
-          <p class="music-hint">Transmissão ao vivo via YouTube. Use os controles do player para tocar/pausar e ajustar o volume.</p>
+          <p class="music-hint">Playlist via Spotify. Use os controles do player para tocar/pausar, avançar e voltar faixa.</p>
         </div>
       </div>
     </section>
@@ -600,7 +594,6 @@
     emptyState: document.getElementById('emptyState'),
     musicToggle: document.getElementById('musicToggle'),
     musicPanel: document.getElementById('musicPanel'),
-    musicSelect: document.getElementById('musicSelect'),
     musicFrame: document.getElementById('musicFrame')
   };
 
@@ -799,23 +792,14 @@
     renderTimer();
   }
 
-  // ---------------- Music ----------------
-  function setMusicSrc(videoId){
-    els.musicFrame.src = 'https://www.youtube.com/embed/'+videoId+'?autoplay=0&rel=0';
-  }
-
+  // ---------------- Music (Spotify) ----------------
   els.musicToggle.addEventListener('click', ()=>{
     const isOpen = els.musicPanel.classList.toggle('open');
     els.musicToggle.classList.toggle('open', isOpen);
     if(isOpen && !musicLoaded){
-      setMusicSrc(els.musicSelect.value);
+      els.musicFrame.src = els.musicFrame.dataset.src;
       musicLoaded = true;
     }
-  });
-
-  els.musicSelect.addEventListener('change', ()=>{
-    setMusicSrc(els.musicSelect.value);
-    musicLoaded = true;
   });
 
   // ---------------- Checklist logic ----------------
