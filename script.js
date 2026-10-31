@@ -6,11 +6,12 @@
     focusMin: 25,
     breakMin: 5,
     longBreakMin: 15,
-    mode: 'focus',        // 'focus' | 'break' | 'longBreak'
+    mode: 'focus',
     secondsLeft: 25*60,
     running: false,
     sessionsToday: 0,
-    cycleCount: 0          // focus sessions completed since last long break (0-3)
+    cycleCount: 0,
+    forest: [] // Array de árvores plantadas hoje
   };
   let items = [];
   let intervalId = null;
@@ -18,6 +19,7 @@
 
   const STORAGE_KEY_SETTINGS = 'foco-settings';
   const STORAGE_KEY_ITEMS = 'foco-checklist-items';
+  const STORAGE_KEY_FOREST = 'foco-forest-today';
 
   const els = {
     timeDisplay: document.getElementById('timeDisplay'),
@@ -42,9 +44,9 @@
     musicToggle: document.getElementById('musicToggle'),
     musicPanel: document.getElementById('musicPanel'),
     musicFrame: document.getElementById('musicFrame'),
-    treeEmoji: document.getElementById('treeEmoji'),
-    treeTitle: document.getElementById('treeTitle'),
-    treeMessage: document.getElementById('treeMessage')
+    plantParts: document.getElementById('plantParts'),
+    treeStatusText: document.getElementById('treeStatusText'),
+    forestGrid: document.getElementById('forestGrid')
   };
 
   // ---------------- Storage helpers ----------------
@@ -59,6 +61,10 @@
         state.sessionsToday = saved.sessionsToday ?? 0;
         state.cycleCount = saved.cycleCount ?? 0;
       }
+      const forestRes = await window.storage.get(STORAGE_KEY_FOREST, false);
+      if(forestRes && forestRes.value){
+        state.forest = JSON.parse(forestRes.value);
+      }
     }catch(e){ /* no saved settings yet */ }
     state.secondsLeft = durationFor(state.mode) * 60;
   }
@@ -72,7 +78,8 @@
         sessionsToday: state.sessionsToday,
         cycleCount: state.cycleCount
       }), false);
-    }catch(e){ console.error('Falha ao salvar configurações', e); }
+      await window.storage.set(STORAGE_KEY_FOREST, JSON.stringify(state.forest), false);
+    }catch(e){ console.error('Falha ao salvar dados', e); }
   }
 
   async function loadItems(){
@@ -140,11 +147,11 @@
     }
   }
 
-  function renderTree(){
+  // Renderização SVG Dinâmica da Planta / Árvore Crescendo
+  function renderPlantProgress(){
     if(state.mode !== 'focus'){
-      els.treeEmoji.textContent = '☕';
-      els.treeTitle.textContent = 'Momento de Descanso';
-      els.treeMessage.textContent = 'Relaxe para o próximo ciclo de foco.';
+      els.plantParts.innerHTML = '<text x="90" y="75" font-size="28" text-anchor="middle">☕</text>';
+      els.treeStatusText.textContent = 'Momento de pausa e descanso';
       return;
     }
 
@@ -152,22 +159,56 @@
     const progress = (total - state.secondsLeft) / total;
 
     if(progress < 0.25){
-      els.treeEmoji.textContent = '🌱';
-      els.treeTitle.textContent = 'Semente Plantada';
-      els.treeMessage.textContent = 'Mantenha o foco para a árvore crescer.';
+      // Estágio 1: Semente / Broto Inicial
+      els.plantParts.innerHTML = `
+        <path d="M 100 110 Q 100 90 100 78" stroke="#4A7C59" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <path d="M 100 80 Q 88 70 82 60 Q 96 64 100 80 Z" fill="#588157"/>
+        <path d="M 100 75 Q 112 65 118 55 Q 104 59 100 75 Z" fill="#A3B18A"/>
+      `;
+      els.treeStatusText.textContent = 'Semente plantada... mantenha o foco';
     } else if(progress < 0.50){
-      els.treeEmoji.textContent = '🌿';
-      els.treeTitle.textContent = 'Broto Crescendo';
-      els.treeMessage.textContent = 'Ótimo ritmo! Continue firme.';
+      // Estágio 2: Broto Crescendo
+      els.plantParts.innerHTML = `
+        <path d="M 100 110 Q 100 80 100 62" stroke="#4A7C59" stroke-width="4" fill="none" stroke-linecap="round"/>
+        <path d="M 100 70 Q 75 55 65 40 Q 90 48 100 70 Z" fill="#588157"/>
+        <path d="M 100 65 Q 125 50 135 35 Q 110 43 100 65 Z" fill="#A3B18A"/>
+        <circle cx="100" cy="58" r="4" fill="#588157"/>
+      `;
+      els.treeStatusText.textContent = 'O broto está crescendo firme!';
     } else if(progress < 0.75){
-      els.treeEmoji.textContent = '🌲';
-      els.treeTitle.textContent = 'Árvore em Desenvolvimento';
-      els.treeMessage.textContent = 'Mais da metade do caminho percorrida.';
+      // Estágio 3: Árvore Jovem
+      els.plantParts.innerHTML = `
+        <path d="M 100 110 L 100 50" stroke="#6F4E37" stroke-width="6" stroke-linecap="round"/>
+        <circle cx="100" cy="45" r="22" fill="#588157"/>
+        <circle cx="85" cy="48" r="16" fill="#3A5A40"/>
+        <circle cx="115" cy="48" r="16" fill="#A3B18A"/>
+      `;
+      els.treeStatusText.textContent = 'Sua árvore está pegando forma!';
     } else {
-      els.treeEmoji.textContent = '🌳';
-      els.treeTitle.textContent = 'Árvore Frondosa';
-      els.treeMessage.textContent = 'Quase concluindo o ciclo de foco!';
+      // Estágio 4: Árvore Frondosa Completa
+      els.plantParts.innerHTML = `
+        <path d="M 100 110 L 100 45" stroke="#5C4033" stroke-width="7" stroke-linecap="round"/>
+        <circle cx="100" cy="38" r="28" fill="#3A5A40"/>
+        <circle cx="78" cy="42" r="20" fill="#588157"/>
+        <circle cx="122" cy="42" r="20" fill="#A3B18A"/>
+        <circle cx="100" cy="20" r="16" fill="#588157"/>
+      `;
+      els.treeStatusText.textContent = 'Quase lá! Frutos da dedicação.';
     }
+  }
+
+  function renderForestCollection(){
+    els.forestGrid.innerHTML = '';
+    if(state.forest.length === 0){
+      els.forestGrid.innerHTML = '<span class="forest-empty">Nenhuma árvore plantada hoje ainda.</span>';
+      return;
+    }
+    state.forest.forEach(() => {
+      const treeSpan = document.createElement('span');
+      treeSpan.className = 'tree-badge';
+      treeSpan.textContent = '🌳';
+      els.forestGrid.appendChild(treeSpan);
+    });
   }
 
   function renderTimer(){
@@ -192,7 +233,8 @@
     applyAccent();
     renderTicks();
     renderCycle();
-    renderTree();
+    renderPlantProgress();
+    renderForestCollection();
     document.title = (state.running ? formatTime(state.secondsLeft)+' · ' : '') + 'foco.';
   }
 
@@ -220,9 +262,8 @@
       if(state.mode === 'focus'){
         state.sessionsToday += 1;
         state.cycleCount += 1;
-        els.treeEmoji.textContent = '🌳';
-        els.treeTitle.textContent = 'Ciclo Concluído!';
-        els.treeMessage.textContent = 'Parabéns, você cultivou sua árvore com sucesso.';
+        state.forest.push('tree'); // Planta uma árvore na floresta do dia!
+        
         if(state.cycleCount >= 4){
           state.mode = 'longBreak';
         } else {
@@ -276,15 +317,14 @@
     renderTimer();
   }
 
-  // 🛡️ Page Visibility API: Detecta se o usuário abandonou a aba durante o foco
+  // 🛡️ Page Visibility API: Se abandonar a aba no modo foco, a planta murcha!
   document.addEventListener('visibilitychange', () => {
     if(document.hidden && state.running && state.mode === 'focus'){
       state.running = false;
       clearInterval(intervalId);
       
-      els.treeEmoji.textContent = '🥀';
-      els.treeTitle.textContent = 'Árvore Murchou';
-      els.treeMessage.textContent = 'Você abandonou a aba e perdeu o foco!';
+      els.plantParts.innerHTML = '<text x="90" y="75" font-size="28" text-anchor="middle">🥀</text>';
+      els.treeStatusText.textContent = 'Você abandonou a aba e sua árvore murchou!';
       renderTimer();
     }
   });
