@@ -28,15 +28,29 @@
         <button class="mode-pill" data-mode="longBreak">Pausa longa</button>
       </div>
 
-      <!-- Widget da Árvore do Foco -->
-      <div class="tree-widget">
-        <div id="treeEmoji" class="tree-emoji">🌱</div>
-        <div class="tree-info">
-          <h3 id="treeTitle">Semente Plantada</h3>
-          <p id="treeMessage">Mantenha o foco para a árvore crescer.</p>
+      <!-- Ilustração Gráfica da Planta / Árvore (Estilo Forest) -->
+      <div class="forest-stage-container">
+        <div class="soil-circle">
+          <svg id="plantSvg" viewBox="0 0 200 200" width="140" height="140">
+            <!-- Vaso / Terra (Semicírculo inferior) -->
+            <path d="M 30 110 A 70 70 0 0 0 170 110 Z" fill="#8B5A2B"/>
+            <ellipse cx="100" cy="110" rx="70" ry="18" fill="#A06532"/>
+            
+            <!-- Grupo da Planta (Dinâmico via JS) -->
+            <g id="plantParts">
+              <!-- Semente / Broto inicial -->
+              <path id="stem" d="M 100 110 Q 100 85 100 70" stroke="#4A7C59" stroke-width="4" fill="none" stroke-linecap="round"/>
+              <g id="leaves">
+                <path d="M 100 80 Q 80 70 75 55 Q 95 60 100 80 Z" fill="#588157"/>
+                <path d="M 100 75 Q 120 65 125 50 Q 105 55 100 75 Z" fill="#A3B18A"/>
+              </g>
+            </g>
+          </svg>
         </div>
+        <p id="treeStatusText" class="tree-status-text">Plante sua semente mantendo o foco</p>
       </div>
 
+      <!-- Ciclo e Ticks -->
       <div class="cycle-row">
         ciclo <span id="cycleLabel">1</span> de 4 até a pausa longa
         <span class="cycle-dots" id="cycleDots"></span>
@@ -44,6 +58,7 @@
 
       <div class="minute-ticks" id="ticks"></div>
 
+      <!-- Timer reposicionado um pouco mais abaixo -->
       <div class="timer-frame">
         <span class="corner tl"></span><span class="corner tr"></span>
         <span class="corner bl"></span><span class="corner br"></span>
@@ -83,6 +98,14 @@
       </div>
 
       <div class="sessions-row"><span id="sessionCount">0</span> sessões de foco concluídas hoje</div>
+
+      <!-- Mini-floresta acumulada do dia -->
+      <div class="forest-collection">
+        <span class="forest-label">Sua Floresta de Hoje:</span>
+        <div id="forestGrid" class="forest-grid">
+          <span class="forest-empty">Nenhuma árvore plantada ainda.</span>
+        </div>
+      </div>
 
       <div class="music-section">
         <button class="music-toggle" id="musicToggle">
